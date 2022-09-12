@@ -1,3 +1,98 @@
-body {
-    background-color: antiquewhite;
+* {
+    margin:0;
 }
+
+html { overflow-y: scroll; overflow-x:hidden; }
+body {
+    background-color: ghostwhite;
+    font-family:'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif
+}
+
+
+#content{
+    display:flex;
+    height:100vh;
+}
+
+.title {
+    font-size:40px;
+    padding:10px;
+}
+
+.side-div{
+    height:100%;
+    width:200px;
+    position:fixed;
+    background-color:rgb(236, 211, 178);
+    }
+
+.board {
+    margin:30px;
+    margin-left:230px;
+    width:100%;
+    
+    display:flex;
+    flex-direction: columns;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap:30px;
+    }
+
+
+.folder-card{
+    height:250px;
+    width:350px;
+    border:2px solid gray;
+}
+
+
+
+
+#folder{
+    color:bisque;
+    font-size:60px;
+    width:auto;
+    padding:30px;
+    cursor:pointer;
+}
+
+
+ul {
+    list-style: none;
+}
+ul li {
+    margin-top:10px;
+    cursor:pointer;
+}
+
+.title-line {
+    display:flex;
+    align-items:center;
+}
+
+.desc-div {
+    display:flex;
+    flex-direction: column;
+    gap: 5px;
+    justify-content: center;
+    align-items:center;
+}
+
+.btn {
+    height:30px;
+    width:50%;
+    border-radius:10px;
+    cursor: pointer;
+}
+
+#open {
+    background-color: aquamarine;
+}
+
+#delete{
+    background-color: rgba(255, 0, 0, 0.671);
+}
+
+.zoom:hover {
+    transform: scale(1.1);
+  }
