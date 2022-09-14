@@ -38,6 +38,14 @@ const titleDiv = document.createElement('div')
 titleDiv.classList.add('title-div')
 titleDiv.innerHTML = `<div class="title-line"><i id="folder" class="bi bi-folder-fill zoom"></i><h2>${t}</h2></div>`
 folder.appendChild(titleDiv)
+//add trigger to icon
+
+const folderIcon = titleDiv.querySelector('#folder')
+folderIcon.onclick = function(){
+    const order = folderIcon.closest('.folder-card').id.split('_').at(1)
+    showTodos(order);
+}
+
 
 //desc div
 const descDiv = document.createElement('div')
@@ -59,7 +67,7 @@ function makeButton(text,tagName) {
         const index = parseInt(card.id.split('_').at(1))
         const action = e.target.id
         if (action=='open'){
-            console.log('pass for now') 
+            showTodos(index)
         } else if(action=='change' & card.querySelector('.deleteForm').style.display=='none'){
             
             changeFormToggle(true,index);
@@ -217,13 +225,146 @@ function showFolders(){
     }
 }
 
+// Todo page 
+
+function showTodos(index){
+   
+   // make page empty
+   cleanBoard()
+   cleanActions()
+
+   // side 
+   const actions = side.querySelector('.actions')
+    const li1 = document.createElement('li')
+    li1.innerHTML= `<li class="addTodo"><i class="bi bi-pencil"></i> Add New Todo</li>`
+    actions.appendChild(li1)
+    li1.onclick = function(){
+        account.addTodo(index,'Add Test','this is an adding test','10/10/2022',3);
+        showTodos(index)
+    }
+
+    const li2 = document.createElement('li')
+    li2.innerHTML = `<li class="back"><i class="bi bi-arrow-return-left"></i> Back to Folders</li>`
+    li2.onclick= showFolders
+    actions.appendChild(li2)
+
+   // board 
+   function makeCard(id,title,priority,date,description){
+   const card = document.createElement('div');
+   card.classList.add('todo-card')
+   card.setAttribute('id',`todo_${id}`)
+   //header of card
+   const header = document.createElement('div')
+   let color;
+   if (priority==1){
+    color='redflag' 
+   } else if(priority==2){
+    color='yellowflag'
+   } else{
+    color='greenflag'
+   }
+
+   header.classList.add('header')
+   header.innerHTML=`<h3 class='title'>${title} <i class="bi bi-flag-fill ${color}"></i></h3> 
+                     <p id='due'>Due Date ${date}</p>
+                     </div>`
+   card.appendChild(header)
+
+   // desc section of card 
+
+   const cardContent = document.createElement('div')
+   cardContent.classList.add('card-content')
+   cardContent.innerHTML= `
+   <div class="description">
+   ${description}
+   </div>
+   <div class="buttons">
+   <button class=btn small id="update">Update</button>
+   <button class=btn small id="deleteTodo">Delete</button>
+   </div>
+   `
+   //add trigger to the buttons 
+   
+   //Update button 
+   const upadateTodo =cardContent.querySelector('#update');
+   upadateTodo.onclick = function(){
+   addForm(index,id)
+   upadateTodo.disabled=true;
+   }
+
+   
+   //delete button
+   const deleteTodo = cardContent.querySelector('#deleteTodo');
+   deleteTodo.onclick = function(){
+    account.removeTodo(account.projects[index],parseInt(id))
+    showTodos(index)
+   }
+
+   card.appendChild(cardContent)
+
+   board.appendChild(card)}
+
+   const todos = account.projects[index].toDos
+   for (let i=0; i<todos.length;i++){
+    const todo = todos.at(i);
+    makeCard(i,todo.title,todo.priority,todo.dueDate,todo.description)
+   }
+   
+    
+}
+
+
+function addForm(index,id){
+    const form = document.createElement('div')
+    const todo = account.projects[index].toDos.at(id)
+    form.classList.add('updateForm')
+    form.setAttribute('id',`form_${id}`)
+    if (todo.title=='default'){
+    form.innerHTML = `
+    <input type='text' id='todoTitle' placeholder='Title'>
+    <input type='date' id='date'>
+    <textarea id="description"  rows="5" cols="38" placeholder='Todo description'></textarea>
+    <input type='number' placeholder='1-3(1 is most important)' id = 'priorityNumber' min='1' max='3'>
+    <input type='submit' class='btn green' value='Save' id='saveUpdate' onClick='return false;'>
+    <input type='submit' class='btn red' value='Cancel' id='cancelUpdate'>
+    `} else {
+        form.innerHTML =     `
+    <input type='text' value='${todo.title}' id='todoTitle' placeholder='Title'>
+    <input value='' type='date' id='date'>
+    <textarea id="description" rows="5" cols="38" placeholder='Todo description'>${todo.description}</textarea>
+    <input type='number' value='${todo.priority}' placeholder='1-3(1 is most important)' id = 'priorityNumber' min='1' max='3'>
+    <input type='submit' class='btn green' value='Save' id='saveUpdate' onClick='return false;'>
+    <input type='submit' class='btn red' value='Cancel' id='cancelUpdate'>
+    `
+    }
+
+    //cancel button trigger
+    const cancelUpdate = form.querySelector('#cancelUpdate')
+    cancelUpdate.onclick = function (){
+        const index = form.id.split('_').at(1)
+        const card = document.querySelector(`#todo_${index}`)
+        card.querySelector('#update').disabled=false;
+        form.remove()
+        return false;
+    }
+    
+    const cardUpdate = document.querySelector(`#todo_${id}`)
+    cardUpdate.after(form)
+ }
+
+
+
+
+
+
+
+
 //default
-
 showFolders()
+showTodos(0)
 
 
 
-console.log(account.projects)
+account.addTodo(1,'test3','this is a test for another folder','10/10/2022',3)
 
-console.log(account.projects[0].toDos[0])
 

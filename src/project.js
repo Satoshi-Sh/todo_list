@@ -21,6 +21,9 @@ export const Account = function(){
         return {
         toDos :[],
         folderName:folderName,
+        getTodo(index){
+            return toDos.at[index]
+        },
         changeName(newName) {
           return  this.folderName = newName
         }
@@ -31,8 +34,8 @@ export const Account = function(){
         const toDo = makeToDo(title,description,dueDate,priority)
         projects.at(index).toDos.push(toDo);
     }
-    function removeTodo(index){
-        this.projects.slice(index,1);
+    function removeTodo(p,index){
+        p.toDos.splice(index,1);
     }
 
     function addProject(name='default'){
@@ -46,8 +49,10 @@ export const Account = function(){
     //account has a default folder at first 
     addProject('default')
 
-    addTodo(0,'test','this is a test','12/11/2020',1)
-    
+    addTodo(0,'Do Dishes and Clean','Dirty dishes are piled up. Need to clean up the kitchen as soon as possible.','1/10/2022',1)
+    addTodo(0,'Prepare Test','this is another test','8/10/2022',2)
+
+
     return {
         projects,addProject,removeProject,addTodo,removeTodo
     }
