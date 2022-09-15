@@ -50,11 +50,10 @@ export const Account = function(){
     addProject('default')
 
     addTodo(0,'Do Dishes and Clean','Dirty dishes are piled up. Need to clean up the kitchen as soon as possible.','1/10/2022',1)
-    addTodo(0,'Prepare Test','this is another test','8/10/2022',2)
 
 
     return {
-        projects,addProject,removeProject,addTodo,removeTodo
+        projects,addProject,removeProject,addTodo,removeTodo,makeProject
     }
 
 }

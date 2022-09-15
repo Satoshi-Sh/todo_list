@@ -243,3 +243,11 @@ form{
 }
 
 
+.confirm2 {
+ display:none;
+ flex-direction: column;
+
+}
+#confirm-delete2, #cancel-delete2 {
+    width:120px;
+}

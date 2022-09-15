@@ -1,7 +1,72 @@
 import _, { divide } from 'lodash';
 import './style.css';
 
+import storageAvailable from './localstorage.js'
+
 import {Account} from './project.js'
+
+
+// use local storage to keep account information
+let account;
+if (storageAvailable('localStorage')) {
+    if (!localStorage.getItem('account')){
+    account = new Account()
+    // default
+    account.addProject('Family')
+    account.addProject('Work')
+    account.addProject('Health')
+    updateStorage(account)
+    } else {
+    //
+    // set up data from local storage
+    account = new Account()
+    // remove default
+    account.removeProject(0)
+    const dict = JSON.parse(localStorage.getItem('account'))
+    
+    for (let i=0; i<dict.length;i++){
+        account.addProject(dict[i].folderName)
+        const ts= dict[i].todos
+        for (let j=0; j<ts.length;j++){
+            const td= ts[j]
+            account.addTodo(i,td.title,td.description,td.dueDate,td.priority)
+        }
+
+    }
+    }
+
+    console.log(account)
+  }
+  else {
+    account = new Account()
+// default
+account.addProject('Family')
+account.addProject('Work')
+account.addProject('Health')
+
+  }
+
+  function updateStorage(account){
+    if (storageAvailable('localStorage')){
+        let dict = []
+        for (let i=0; i <account.projects.length; i++){
+            const folderName = account.projects[i].folderName
+            const todos = account.projects[i].toDos
+            let ls = [];
+            for (let j=0; j<todos.length;j++){
+                const todo = todos[j]
+                ls.push({'title':todo.title,'description':todo.description,'dueDate':todo.dueDate,'priority':todo.priority})
+            }
+            dict.push({'folderName':folderName,'todos':ls})
+
+        }
+        localStorage.setItem('account',JSON.stringify(dict))
+    }     
+  }
+
+
+
+
 
 
 const content = document.querySelector("#content");
@@ -94,17 +159,22 @@ form.classList.add('changeForm')
 form.innerHTML = `
  <input type="text" id='new' placeholder="New Folder Name">
  <input type='submit' id='change-submit' class ="btn small" onclick="return false;">
- <input type='submit' value='Cancel' id='cancel-change' class='btn small red smaller" onclick='return false;">
+ <input type='submit' value='Cancel' id='cancel-change' class='btn small red' onclick="return false;">
 `
 const changeSubmit = form.querySelector('#change-submit');
 changeSubmit.addEventListener('click',(e)=>{
    const  card = e.target.closest('.folder-card')
 
    const newName = card.querySelector('#new').value
+   if (newName ==''){
+    alert('Folder name cannot be empty')
+    return false;
+   }
    const index  = parseInt(card.id.split('_').at(1))
    
    const p = account.projects[index];
    p.changeName(newName)
+   updateStorage(account)
    showFolders() 
 })
 
@@ -133,6 +203,7 @@ confirmDelete.addEventListener('click',(e)=>{
     const  card = e.target.closest('.folder-card')
     const index  = parseInt(card.id.split('_').at(1))
     account.removeProject(index)
+    updateStorage(account)
     showFolders() 
 })
 
@@ -141,6 +212,7 @@ cancelDelete.addEventListener('click',(e)=>{
    const  card = e.target.closest('.folder-card')
    const index  = parseInt(card.id.split('_').at(1))
     changeForm2Toggle(false,index)
+    return false;
 })
 
 descDiv.appendChild(form2)
@@ -168,7 +240,6 @@ function cleanActions(){
 
 function changeFormToggle(on=true,index){
     const form = document.querySelector(`#folder_${index}`).querySelector('.changeForm')
-    console.log(form)
     if (on==true){
         form.style.display='flex'
     }
@@ -180,7 +251,6 @@ function changeFormToggle(on=true,index){
 
 function changeForm2Toggle(on=true,index){
     const form = document.querySelector(`#folder_${index}`).querySelector('.deleteForm')
-    console.log(form)
     if (on==true){
         form.style.display='flex'
     }
@@ -189,12 +259,6 @@ function changeForm2Toggle(on=true,index){
     }
     return form
 }
-
-
-
-const account = new Account()
-account.addProject('Family')
-
 
 
 
@@ -209,6 +273,7 @@ function showFolders(){
     // add trigger to add folder 
     li1.addEventListener('click',()=>{
     account.addProject()
+    updateStorage(account)
     showFolders()
 })
 
@@ -239,7 +304,8 @@ function showTodos(index){
     li1.innerHTML= `<li class="addTodo"><i class="bi bi-pencil"></i> Add New Todo</li>`
     actions.appendChild(li1)
     li1.onclick = function(){
-        account.addTodo(index,'Add Test','this is an adding test','10/10/2022',3);
+        account.addTodo(index,'default','Please update me','01/01/1970',0);
+        updateStorage(account)
         showTodos(index)
     }
 
@@ -260,7 +326,7 @@ function showTodos(index){
     color='redflag' 
    } else if(priority==2){
     color='yellowflag'
-   } else{
+   } else if (priority==3){
     color='greenflag'
    }
 
@@ -281,8 +347,16 @@ function showTodos(index){
    <div class="buttons">
    <button class=btn small id="update">Update</button>
    <button class=btn small id="deleteTodo">Delete</button>
+   <form class='confirm2'>
+   <input type='submit' value="Confirm Delete" id='confirm-delete2' class="btn small green">
+   <input type='submit' value="Cancel" id='cancel-delete2' class="btn small red">
+   </form>
    </div>
+
    `
+
+   
+
    //add trigger to the buttons 
    
    //Update button 
@@ -296,9 +370,31 @@ function showTodos(index){
    //delete button
    const deleteTodo = cardContent.querySelector('#deleteTodo');
    deleteTodo.onclick = function(){
-    account.removeTodo(account.projects[index],parseInt(id))
-    showTodos(index)
+    const confirm2 = cardContent.querySelector('.confirm2')
+    //show confirm form
+    confirm2.style.display= 'flex' 
+    //account.removeTodo(account.projects[index],parseInt(id))
+    //showTodos(index)
    }
+
+   // delete confirm
+   const confirmDelete2 = cardContent.querySelector('#confirm-delete2');
+   confirmDelete2.onclick = function(){
+    account.removeTodo(account.projects[index],parseInt(id))
+    updateStorage(account)
+    showTodos(index)
+    return false;
+   }
+   // delete cancel
+   const cancelDelete2 = cardContent.querySelector('#cancel-delete2');
+   cancelDelete2.onclick = function (){
+    const confirm2 = cardContent.querySelector('.confirm2')
+    //show confirm form
+    confirm2.style.display= 'none' 
+    return false;
+   }
+
+
 
    card.appendChild(cardContent)
 
@@ -333,10 +429,35 @@ function addForm(index,id){
     <input value='' type='date' id='date'>
     <textarea id="description" rows="5" cols="38" placeholder='Todo description'>${todo.description}</textarea>
     <input type='number' value='${todo.priority}' placeholder='1-3(1 is most important)' id = 'priorityNumber' min='1' max='3'>
-    <input type='submit' class='btn green' value='Save' id='saveUpdate' onClick='return false;'>
+    <input type='submit' class='btn green' value='Save' id='saveUpdate'>
     <input type='submit' class='btn red' value='Cancel' id='cancelUpdate'>
     `
     }
+
+    //save button trigger 
+    const saveUpdate = form.querySelector('#saveUpdate')
+    saveUpdate.onclick = function (e){
+        const updateForm = e.target.closest('.updateForm')
+        const newTitle = updateForm.querySelector('#todoTitle').value
+        const newDate = updateForm.querySelector('#date').value
+        const newDesc = updateForm.querySelector('#description').value
+        const newPri = updateForm.querySelector('#priorityNumber').value
+
+        // validate 
+        if (newTitle==''| newDate==''| newDesc==''){
+            alert('Any field cannot be empty')
+            return false;
+        } else if (newPri <1 | newPri >3) {
+            alert('Priority should be 1,2, or 3.')
+            return false;
+        }
+        //update todo 
+        todo.editToDo(newTitle,newDesc,newDate,newPri)
+        updateStorage(account)
+        showTodos(index)
+        return false;
+    }
+
 
     //cancel button trigger
     const cancelUpdate = form.querySelector('#cancelUpdate')
@@ -361,10 +482,7 @@ function addForm(index,id){
 
 //default
 showFolders()
-showTodos(0)
 
 
-
-account.addTodo(1,'test3','this is a test for another folder','10/10/2022',3)
 
 
